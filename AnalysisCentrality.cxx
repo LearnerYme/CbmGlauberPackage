@@ -116,7 +116,7 @@ void AnalysisCentrality() {
     }
 
     // using Npart centrality, define
-    scaleFactor = hReal->Integral() / hMult->Integral();
+    scaleFactor = hReal->Integral(minMultCut, hReal->GetNbinsX()) / hMult->Integral(minMultCut, hMult->GetNbinsX());
     TH1D* hMultCent[nBins-1];
     for (int i=1; i<nBins; i++) {
         hMultCent[i-1] = h2d->ProjectionY(
