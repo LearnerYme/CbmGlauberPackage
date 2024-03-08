@@ -68,8 +68,8 @@ void FitManager::CalcChi2(int minMult=10) {
         Return: None
         :Note: please setup sampler, read in real distribution, and call Sample before calculate chi2
     */
-    auto nEvReal = hReal->Integral();
-    auto nEvSim = hSample->Integral();
+    auto nEvReal = hReal->Integral(minMult, -1);
+    auto nEvSim = hSample->Integral(minMult, -1);
     hSample->Scale(nEvReal*1.0 / nEvSim);
     mNdf = 0;
     mChi2 = 0.0;
