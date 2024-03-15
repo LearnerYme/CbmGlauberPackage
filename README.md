@@ -2,9 +2,9 @@
 
 Author: Yige Huang
 
-Date: 02.03.2024
+Date: 15.03.2024
 
-Version: 1.0
+Version: 1.1
 
 ## About TGlauberMC package
 
@@ -55,6 +55,12 @@ For more information about this license, see: [GNU](http://www.gnu.org/licenses)
 
 ## Patch note
 
+14.03.2024 by yghuang (v1.1):
+
+> New Feature: reweight parameters are avaliable in `AnalysisCentrality.cxx`
+>
+> Chage: Centrality splitting is determined by data distribution for top 20%, and Glauber + data for higher centrality
+
 02.03.2024 by yghuang (v1.0):
 
-* Fisrt completed edition
+> Fisrt completed edition

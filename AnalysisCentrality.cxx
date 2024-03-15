@@ -75,11 +75,25 @@ void AnalysisCentrality() {
     double rate_edge[nBins] = {
         0.00, 0.10, 0.20, 0.30, 0.40, 0.50
     };
+    // v1.1: change the way we do centrality selection with measured multiplicity
+    // for 0 to 20%, just use data
+    // for higher cases, concate MC's distribution (later 80%) and data (former 20%)
+    bool UseGlauber = false;
+    int mult_20percent = -1;
     for (int i=nbins; i>=0; i--){
-        cnt += hSample->GetBinContent(i);
+        if (UseGlauber) { 
+            cnt += hSample->GetBinContent(i);
+        } else {
+            cnt += hReal->GetBinContent(i);
+        }
         if (cnt*1.0 / tot > rate_edge[cur_bin]){
             cout << "[LOG] For Multiplicity: " << cur_bin << ", " << rate_edge[cur_bin] << ", " << i << ", " << cnt << " of " << tot << ".\n";
             edge[cur_bin] = i; 
+            if (cur_bin > 0 && cur_bin+1 < nBins-1 && rate_edge[cur_bin] < 0.21 && rate_edge[cur_bin+1] > 0.21) { // here, we change the value of [tot]
+                tot = hReal->Integral(i+1, nbins) + hSample->Integral(1, i);
+                UseGlauber = true;
+                mult_20percent = i;
+            }
             cur_bin ++;
         }
         if (cur_bin >= nBins){
@@ -94,6 +108,22 @@ void AnalysisCentrality() {
     for (int i=1; i<10; i++){
         l->DrawLine(edge[i], hSample->GetYaxis()->GetXmin(), edge[i], hSample->GetBinContent(edge[i]));
     }
+
+    // fit ratio plot
+    // for event-wise reweight
+    TF1* fRatioFitFunc = new TF1(
+        "fRatioFitFunc",
+        "[0]+[1]/([2]*x + [3]) + [4]*([2]*x + [3]) + [6]/TMath::Power([2]*x+[3] ,2) + [5]*TMath::Power([2]*x+[3] ,2)",
+        5.0, mult_20percent*1.0
+    );
+    fRatioFitFunc->SetParameters(1, -0.1, 0.4, -0.3, -1e-3, 1e-5, 4); // init. pars
+    fRatioFitFunc->SetLineColor(2);
+    auto tgRatio = (TGraph*)ratio->GetLowerRefGraph();
+    double ratioPars[7];
+    tgRatio->Fit(fRatioFitFunc, "RN0Q");
+    fRatioFitFunc->GetParameters(ratioPars);
+    ratio->GetLowerPad()->cd();
+    fRatioFitFunc->DrawClone("lsame");
 
     // do centrality definition with Npart
     TH1D* hNpart = (TH1D*)h2d->ProjectionX();
@@ -158,6 +188,13 @@ void AnalysisCentrality() {
     fout << "|\tCentrality\t|\t<Npart>\t|\tMult>\t|\tMult<\t|\n";
     for (int i=0; i<nBins-1; i++) {
         fout << "|\t" << cents[i] << "\t\t|\t" << meanNpart[i] << "\t|\t" << edge[i+1] << "\t\t|\t" << edge[i] << "\t\t|\n";
+    }
+    fout << "Reweight function: [0]+[1]/([2]*x + [3]) + [4]*([2]*x + [3]) + [6]/TMath::Power([2]*x+[3] ,2) + [5]*TMath::Power([2]*x+[3] ,2)\n";
+    fout << "Reweight parameters: \n{\t";
+    for (int i=0; i<7; i++) {
+        fout << ratioPars[i];
+        if (i != 6) { fout << ",\t"; }
+        else { fout << "}\n"; }
     }
     fout.close();
 
