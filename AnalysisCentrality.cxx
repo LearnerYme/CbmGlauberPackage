@@ -111,6 +111,7 @@ void AnalysisCentrality() {
 
     // fit ratio plot
     // for event-wise reweight
+    ratio->GetLowerPad()->cd();
     TF1* fRatioFitFunc = new TF1(
         "fRatioFitFunc",
         "[0]+[1]/([2]*x + [3]) + [4]*([2]*x + [3]) + [6]/TMath::Power([2]*x+[3] ,2) + [5]*TMath::Power([2]*x+[3] ,2)",
@@ -126,6 +127,7 @@ void AnalysisCentrality() {
     fRatioFitFunc->DrawClone("lsame");
 
     // do centrality definition with Npart
+    ratio->GetUpperPad()->cd();
     TH1D* hNpart = (TH1D*)h2d->ProjectionX();
     TH1D* hMult = (TH1D*)h2d->ProjectionY();
     double edgeNpart[nBins] = {0};
